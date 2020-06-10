@@ -59,28 +59,24 @@ describe('voting-app routes', () => {
       });
   });
 
-  // // get a single user by id
-  // it('can get a single user by id', () => {
-  //   return User.create({
-  //     name: 'Logan Scott',
-  //     phone: '123 456 7890',
-  //     email: 'email@email.com',
-  //     communicationMedium: 'email',
-  //     imageUrl: 'placekitten.com/400/400'
-  //   })
-  //     .then(user => request(app).get(`/api/v1/user/${user._id}`))
-  //     .then(res => {
-  //       expect(res.body).toEqual({
-  //         _id: expect.anything(),
-  //         name: 'Logan Scott',
-  //         phone: '123 456 7890',
-  //         email: 'email@email.com',
-  //         communicationMedium: 'email',
-  //         imageUrl: 'placekitten.com/400/400',
-  //         __v: 0
-  //       });
-  //     });
-  // });
+  // get a single organization by id
+  it('can get a single user by id', () => {
+    return Organization.create({
+      title: 'A New Org',
+      description: 'this is a very cool org',
+      imageUrl: 'placekitten.com/400/400'
+    })
+      .then(user => request(app).get(`/api/v1/organization/${user._id}`))
+      .then(res => {
+        expect(res.body).toEqual({
+          _id: expect.anything(),
+          title: 'A New Org',
+          description: 'this is a very cool org',
+          imageUrl: 'placekitten.com/400/400',
+          __v: 0
+        });
+      });
+  });
 
   // // get all users by communicationMedium
   // it('can get all users by communicationMedium', () => {
