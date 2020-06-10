@@ -134,4 +134,27 @@ describe('voting-app routes', () => {
         });
       });
   });
+
+  // delete a single user by id
+  it('can delete a single user by id', () => {
+    return User.create({
+      name: 'Logan Scott',
+      phone: '123 456 7890',
+      email: 'email@email.com',
+      communicationMedium: 'email',
+      imageUrl: 'placekitten.com/400/400'
+    })
+      .then(user => request(app).delete(`/api/v1/user/${user._id}`))
+      .then(res => {
+        expect(res.body).toEqual({
+          _id: expect.anything(),
+          name: 'Logan Scott',
+          phone: '123 456 7890',
+          email: 'email@email.com',
+          communicationMedium: 'email',
+          imageUrl: 'placekitten.com/400/400',
+          __v: 0
+        });
+      });
+  });
 });
