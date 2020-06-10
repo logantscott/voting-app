@@ -5,7 +5,7 @@ const connect = require('../lib/utils/connect');
 
 const request = require('supertest');
 const app = require('../lib/app');
-const Organization = require('../lib/models/organization');
+const Organization = require('../lib/models/Organization');
 
 describe('voting-app routes', () => {
   beforeAll(async() => {
