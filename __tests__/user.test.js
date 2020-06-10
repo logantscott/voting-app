@@ -23,7 +23,7 @@ describe('voting-app routes', () => {
   });
 
   // create a user
-  it('can get all users', () => {
+  it('can create a user', () => {
     return request(app)
       .post('/api/v1/user')
       .send({
@@ -87,6 +87,7 @@ describe('voting-app routes', () => {
       });
   });
 
+  // get all users by communicationMedium
   it('can get all users by communicationMedium', () => {
     return User.create([{
       name: 'Logan Scott',
