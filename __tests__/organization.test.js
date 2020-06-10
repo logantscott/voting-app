@@ -66,7 +66,7 @@ describe('voting-app routes', () => {
       description: 'this is a very cool org',
       imageUrl: 'placekitten.com/400/400'
     })
-      .then(user => request(app).get(`/api/v1/organization/${user._id}`))
+      .then(organization => request(app).get(`/api/v1/organization/${organization._id}`))
       .then(res => {
         expect(res.body).toEqual({
           _id: expect.anything(),
@@ -85,7 +85,7 @@ describe('voting-app routes', () => {
       description: 'this is a very cool org',
       imageUrl: 'placekitten.com/400/400'
     })
-      .then(user => request(app).patch(`/api/v1/organization/${user._id}`)
+      .then(organization => request(app).patch(`/api/v1/organization/${organization._id}`)
         .send({ description: 'this org kinda sucks' }))
       .then(res => {
         expect(res.body).toEqual({
@@ -98,26 +98,22 @@ describe('voting-app routes', () => {
       });
   });
 
-  // // delete a single user by id
-  // it('can delete a single user by id', () => {
-  //   return User.create({
-  //     name: 'Logan Scott',
-  //     phone: '123 456 7890',
-  //     email: 'email@email.com',
-  //     communicationMedium: 'email',
-  //     imageUrl: 'placekitten.com/400/400'
-  //   })
-  //     .then(user => request(app).delete(`/api/v1/user/${user._id}`))
-  //     .then(res => {
-  //       expect(res.body).toEqual({
-  //         _id: expect.anything(),
-  //         name: 'Logan Scott',
-  //         phone: '123 456 7890',
-  //         email: 'email@email.com',
-  //         communicationMedium: 'email',
-  //         imageUrl: 'placekitten.com/400/400',
-  //         __v: 0
-  //       });
-  //     });
-  // });
+  // delete a single organization by id
+  it('can delete a single organization by id', () => {
+    return Organization.create({
+      title: 'A New Org',
+      description: 'this is a very cool org',
+      imageUrl: 'placekitten.com/400/400'
+    })
+      .then(organization => request(app).delete(`/api/v1/organization/${organization._id}`))
+      .then(res => {
+        expect(res.body).toEqual({
+          _id: expect.anything(),
+          title: 'A New Org',
+          description: 'this is a very cool org',
+          imageUrl: 'placekitten.com/400/400',
+          __v: 0
+        });
+      });
+  });
 });
