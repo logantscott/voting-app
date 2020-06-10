@@ -22,8 +22,8 @@ describe('voting-app routes', () => {
     return mongod.stop();
   });
 
-  // Create a user
-  it('can create a note with execute', () => {
+  // get all users
+  it('can get all users', () => {
     return User.create({
       name: 'Logan Scott',
       phone: '123 456 7890',
@@ -32,11 +32,34 @@ describe('voting-app routes', () => {
       imageUrl: 'placekitten.com/400/400'
     })
       .then(() => request(app).get('/api/v1/user'))
-      .then(users => {
-        expect(users.body).toEqual([{
+      .then(res => {
+        expect(res.body).toEqual([{
           _id: expect.anything(),
           name: 'Logan Scott'
         }]);
+      });
+  });
+
+  // get a single user by id
+  it('can get a single user by id', () => {
+    return User.create({
+      name: 'Logan Scott',
+      phone: '123 456 7890',
+      email: 'email@email.com',
+      communicationMedium: 'email',
+      imageUrl: 'placekitten.com/400/400'
+    })
+      .then(user => request(app).get(`/api/v1/user/${user._id}`))
+      .then(res => {
+        expect(res.body).toEqual({
+          _id: expect.anything(),
+          name: 'Logan Scott',
+          phone: '123 456 7890',
+          email: 'email@email.com',
+          communicationMedium: 'email',
+          imageUrl: 'placekitten.com/400/400',
+          __v: 0
+        });
       });
   });
 });
