@@ -86,4 +86,28 @@ describe('voting-app routes', () => {
         });
       });
   });
+
+  it('can get all users by communicationMedium', () => {
+    return User.create([{
+      name: 'Logan Scott',
+      phone: '123 456 7890',
+      email: 'email@email.com',
+      communicationMedium: 'email',
+      imageUrl: 'placekitten.com/400/400'
+    },
+    {
+      name: 'Phony',
+      phone: '123 456 7890',
+      email: 'email@email.com',
+      communicationMedium: 'phone',
+      imageUrl: 'placekitten.com/400/400'
+    }])
+      .then(() => request(app).get('/api/v1/user?communicationMedium=email'))
+      .then(res => {
+        expect(res.body).toEqual([{
+          _id: expect.anything(),
+          name: 'Logan Scott'
+        }]);
+      });
+  });
 });
