@@ -42,23 +42,22 @@ describe('voting-app routes', () => {
       });
   });
 
-  // // get all users
-  // it('can get all users', () => {
-  //   return User.create({
-  //     name: 'Logan Scott',
-  //     phone: '123 456 7890',
-  //     email: 'email@email.com',
-  //     communicationMedium: 'email',
-  //     imageUrl: 'placekitten.com/400/400'
-  //   })
-  //     .then(() => request(app).get('/api/v1/user'))
-  //     .then(res => {
-  //       expect(res.body).toEqual([{
-  //         _id: expect.anything(),
-  //         name: 'Logan Scott'
-  //       }]);
-  //     });
-  // });
+  // get all organizations
+  it('can get all organizations', () => {
+    return Organization.create({
+      title: 'A New Org',
+      description: 'this is a very cool org',
+      imageUrl: 'placekitten.com/400/400'
+    })
+      .then(() => request(app).get('/api/v1/organization'))
+      .then(res => {
+        expect(res.body).toEqual([{
+          _id: expect.anything(),
+          title: 'A New Org',
+          imageUrl: 'placekitten.com/400/400'
+        }]);
+      });
+  });
 
   // // get a single user by id
   // it('can get a single user by id', () => {
