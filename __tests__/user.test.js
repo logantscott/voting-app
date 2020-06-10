@@ -22,6 +22,30 @@ describe('voting-app routes', () => {
     return mongod.stop();
   });
 
+  // create a user
+  it('can get all users', () => {
+    return request(app)
+      .post('/api/v1/user')
+      .send({
+        name: 'Logan Scott',
+        phone: '123 456 7890',
+        email: 'email@email.com',
+        communicationMedium: 'email',
+        imageUrl: 'placekitten.com/400/400'
+      })
+      .then(res => {
+        expect(res.body).toEqual({
+          _id: expect.anything(),
+          name: 'Logan Scott',
+          phone: '123 456 7890',
+          email: 'email@email.com',
+          communicationMedium: 'email',
+          imageUrl: 'placekitten.com/400/400',
+          __v: 0
+        });
+      });
+  });
+
   // get all users
   it('can get all users', () => {
     return User.create({
