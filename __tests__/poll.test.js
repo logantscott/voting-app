@@ -7,6 +7,7 @@ const request = require('supertest');
 const app = require('../lib/app');
 const Poll = require('../lib/models/Poll');
 const Organization = require('../lib/models/Organization');
+const Vote = require('../lib/models/Vote');
 
 describe('voting-app routes', () => {
   beforeAll(async() => {
@@ -96,6 +97,46 @@ describe('voting-app routes', () => {
           _id: expect.anything(),
           title: 'This is a new poll'
         }]);
+      });
+  });
+
+  // gets details of a poll including organization details and votes aggregation
+  it('can create a poll', () => {
+    return Poll
+      .create({
+        organization: organization._id,
+        title: 'This is a new poll',
+        description: 'I am the description of this poll',
+        options: [
+          'Option 1',
+          'Option 2',
+          'Option 3',
+          'Option 4'
+        ]
+      })
+      .then(poll => request(app)
+        .get(`/api/v1/polls/${poll.id}`))
+      .then(res => {
+        expect(res.body).toEqual({
+          _id: expect.anything(),
+          organization: {
+            _id: organization.id,
+            title: 'A New Org',
+            description: 'this is a very cool org',
+            imageUrl: 'placekitten.com/400/400',
+            __v: 0
+          },
+          title: 'This is a new poll',
+          description: 'I am the description of this poll',
+          options: [
+            'Option 1',
+            'Option 2',
+            'Option 3',
+            'Option 4'
+          ],
+          __v: 0,
+          votes: '' // get total votes on poll how...
+        });
       });
   });
 });
