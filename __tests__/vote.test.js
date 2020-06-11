@@ -37,4 +37,52 @@ describe('voting-app routes', () => {
         });
       });
   });
+
+  // // create a new vote
+  // it('can create a vote', () => {
+  //   return request(app)
+  //     .post('/api/v1/votes')
+  //     .send({
+
+  //     })
+  //     .then(res => {
+  //       expect(res.body).toEqual({
+  //         _id: expect.anything(),
+
+  //         __v: 0
+  //       });
+  //     });
+  // });
+
+  // // create a new vote
+  // it('can create a vote', () => {
+  //   return request(app)
+  //     .post('/api/v1/votes')
+  //     .send({
+
+  //     })
+  //     .then(res => {
+  //       expect(res.body).toEqual({
+  //         _id: expect.anything(),
+
+  //         __v: 0
+  //       });
+  //     });
+  // });
+
+  // // create a new vote
+  // it('can create a vote', () => {
+  //   return request(app)
+  //     .post('/api/v1/votes')
+  //     .send({
+
+  //     })
+  //     .then(res => {
+  //       expect(res.body).toEqual({
+  //         _id: expect.anything(),
+
+  //         __v: 0
+  //       });
+  //     });
+  // });
 });
