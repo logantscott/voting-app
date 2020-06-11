@@ -95,21 +95,26 @@ describe('voting-app routes', () => {
       });
   });
 
-  // // get all votes by a user
-  // it('can get all votes by a user', () => {
-  //   return request(app)
-  //     .post('/api/v1/votes')
-  //     .send({
-
-  //     })
-  //     .then(res => {
-  //       expect(res.body).toEqual({
-  //         _id: expect.anything(),
-
-  //         __v: 0
-  //       });
-  //     });
-  // });
+  // get all votes by a user
+  it('can get all votes by a user', () => {
+    return Vote
+      .create({
+        poll: poll._id,
+        user: user._id,
+        option: 2
+      })
+      .then(() => request(app)
+        .get(`/api/v1/votes?user=${user.id}`))
+      .then(res => {
+        expect(res.body).toEqual([{
+          _id: expect.anything(),
+          poll: poll.id,
+          user: user.id,
+          option: 2,
+          __v: 0
+        }]);
+      });
+  });
 
   // // update a voted option
   // it('can update a voted option', () => {
