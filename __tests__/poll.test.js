@@ -63,4 +63,39 @@ describe('voting-app routes', () => {
         });
       });
   });
+
+  // gets polls by organization
+  it('can create a poll', () => {
+    return Poll
+      .create([{
+        organization: organization._id,
+        title: 'This is a new poll',
+        description: 'I am the description of this poll',
+        options: [
+          'Option 1',
+          'Option 2',
+          'Option 3',
+          'Option 4'
+        ]
+      },
+      {
+        organization: '123412341234123412341234',
+        title: 'FAKE poll',
+        description: 'FAKE poll description',
+        options: [
+          'Option 1',
+          'Option 2',
+          'Option 3',
+          'Option 4'
+        ]
+      }])
+      .then(() => request(app)
+        .get(`/api/v1/polls?organization=${organization.id}`))
+      .then(res => {
+        expect(res.body).toEqual([{
+          _id: expect.anything(),
+          title: 'This is a new poll'
+        }]);
+      });
+  });
 });
