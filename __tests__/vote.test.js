@@ -116,19 +116,27 @@ describe('voting-app routes', () => {
       });
   });
 
-  // // update a voted option
-  // it('can update a voted option', () => {
-  //   return request(app)
-  //     .post('/api/v1/votes')
-  //     .send({
-
-  //     })
-  //     .then(res => {
-  //       expect(res.body).toEqual({
-  //         _id: expect.anything(),
-
-  //         __v: 0
-  //       });
-  //     });
-  // });
+  // update a voted option
+  it('can update a voted option', () => {
+    return Vote
+      .create({
+        poll: poll._id,
+        user: user._id,
+        option: 2
+      })
+      .then(vote => request(app)
+        .patch(`/api/v1/votes/${vote.id}`)
+        .send({
+          option: 3
+        }))
+      .then(res => {
+        expect(res.body).toEqual({
+          _id: expect.anything(),
+          poll: poll.id,
+          user: user.id,
+          option: 3,
+          __v: 0
+        });
+      });
+  });
 });
