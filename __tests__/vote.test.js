@@ -74,21 +74,26 @@ describe('voting-app routes', () => {
       });
   });
 
-  // // get all votes on a poll
-  // it('can get all votes on a poll', () => {
-  //   return request(app)
-  //     .post('/api/v1/votes')
-  //     .send({
-
-  //     })
-  //     .then(res => {
-  //       expect(res.body).toEqual({
-  //         _id: expect.anything(),
-
-  //         __v: 0
-  //       });
-  //     });
-  // });
+  // get all votes on a poll
+  it('can get all votes on a poll', () => {
+    return Vote
+      .create({
+        poll: poll._id,
+        user: user._id,
+        option: 2
+      })
+      .then(() => request(app)
+        .get(`/api/v1/votes?poll=${poll.id}`))
+      .then(res => {
+        expect(res.body).toEqual([{
+          _id: expect.anything(),
+          poll: poll.id,
+          user: user.id,
+          option: 2,
+          __v: 0
+        }]);
+      });
+  });
 
   // // get all votes by a user
   // it('can get all votes by a user', () => {
