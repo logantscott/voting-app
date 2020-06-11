@@ -25,7 +25,7 @@ describe('voting-app routes', () => {
   // create a user
   it('can create a user', () => {
     return request(app)
-      .post('/api/v1/user')
+      .post('/api/v1/users')
       .send({
         name: 'Logan Scott',
         phone: '123 456 7890',
@@ -55,7 +55,7 @@ describe('voting-app routes', () => {
       communicationMedium: 'email',
       imageUrl: 'placekitten.com/400/400'
     })
-      .then(() => request(app).get('/api/v1/user'))
+      .then(() => request(app).get('/api/v1/users'))
       .then(res => {
         expect(res.body).toEqual([{
           _id: expect.anything(),
@@ -73,7 +73,7 @@ describe('voting-app routes', () => {
       communicationMedium: 'email',
       imageUrl: 'placekitten.com/400/400'
     })
-      .then(user => request(app).get(`/api/v1/user/${user._id}`))
+      .then(user => request(app).get(`/api/v1/users/${user._id}`))
       .then(res => {
         expect(res.body).toEqual({
           _id: expect.anything(),
@@ -103,7 +103,7 @@ describe('voting-app routes', () => {
       communicationMedium: 'phone',
       imageUrl: 'placekitten.com/400/400'
     }])
-      .then(() => request(app).get('/api/v1/user?communicationMedium=email'))
+      .then(() => request(app).get('/api/v1/users?communicationMedium=email'))
       .then(res => {
         expect(res.body).toEqual([{
           _id: expect.anything(),
@@ -121,7 +121,7 @@ describe('voting-app routes', () => {
       communicationMedium: 'email',
       imageUrl: 'placekitten.com/400/400'
     })
-      .then(user => request(app).patch(`/api/v1/user/${user._id}`)
+      .then(user => request(app).patch(`/api/v1/users/${user._id}`)
         .send({ phone: '999 999 9999' }))
       .then(res => {
         expect(res.body).toEqual({
@@ -145,7 +145,7 @@ describe('voting-app routes', () => {
       communicationMedium: 'email',
       imageUrl: 'placekitten.com/400/400'
     })
-      .then(user => request(app).delete(`/api/v1/user/${user._id}`))
+      .then(user => request(app).delete(`/api/v1/users/${user._id}`))
       .then(res => {
         expect(res.body).toEqual({
           _id: expect.anything(),

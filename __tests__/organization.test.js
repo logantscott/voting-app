@@ -25,7 +25,7 @@ describe('voting-app routes', () => {
   // create an organization
   it('can create an organization', () => {
     return request(app)
-      .post('/api/v1/organization')
+      .post('/api/v1/organizations')
       .send({
         title: 'A New Org',
         description: 'this is a very cool org',
@@ -49,7 +49,7 @@ describe('voting-app routes', () => {
       description: 'this is a very cool org',
       imageUrl: 'placekitten.com/400/400'
     })
-      .then(() => request(app).get('/api/v1/organization'))
+      .then(() => request(app).get('/api/v1/organizations'))
       .then(res => {
         expect(res.body).toEqual([{
           _id: expect.anything(),
@@ -66,7 +66,7 @@ describe('voting-app routes', () => {
       description: 'this is a very cool org',
       imageUrl: 'placekitten.com/400/400'
     })
-      .then(organization => request(app).get(`/api/v1/organization/${organization._id}`))
+      .then(organization => request(app).get(`/api/v1/organizations/${organization._id}`))
       .then(res => {
         expect(res.body).toEqual({
           _id: expect.anything(),
@@ -85,7 +85,7 @@ describe('voting-app routes', () => {
       description: 'this is a very cool org',
       imageUrl: 'placekitten.com/400/400'
     })
-      .then(organization => request(app).patch(`/api/v1/organization/${organization._id}`)
+      .then(organization => request(app).patch(`/api/v1/organizations/${organization._id}`)
         .send({ description: 'this org kinda sucks' }))
       .then(res => {
         expect(res.body).toEqual({
@@ -105,7 +105,7 @@ describe('voting-app routes', () => {
       description: 'this is a very cool org',
       imageUrl: 'placekitten.com/400/400'
     })
-      .then(organization => request(app).delete(`/api/v1/organization/${organization._id}`))
+      .then(organization => request(app).delete(`/api/v1/organizations/${organization._id}`))
       .then(res => {
         expect(res.body).toEqual({
           _id: expect.anything(),
