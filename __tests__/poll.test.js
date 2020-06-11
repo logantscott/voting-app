@@ -18,6 +18,15 @@ describe('voting-app routes', () => {
     return mongoose.connection.dropDatabase();
   });
 
+  let organization;
+  beforeEach(async() => {
+    organization = await Organization.create({
+      title: 'A New Org',
+      description: 'this is a very cool org',
+      imageUrl: 'placekitten.com/400/400'
+    });
+  });
+
   afterAll(async() => {
     await mongoose.connection.close();
     return mongod.stop();
@@ -25,28 +34,23 @@ describe('voting-app routes', () => {
 
   // create a poll
   it('can create a poll', () => {
-    return Organization.create({
-      title: 'A New Org',
-      description: 'this is a very cool org',
-      imageUrl: 'placekitten.com/400/400'
-    })
-      .then(organization => request(app)
-        .post('/api/v1/polls')
-        .send({
-          organization: organization._id,
-          title: 'This is a new poll',
-          description: 'I am the description of this poll',
-          options: [
-            'Option 1',
-            'Option 2',
-            'Option 3',
-            'Option 4'
-          ]
-        }))
+    return request(app)
+      .post('/api/v1/polls')
+      .send({
+        organization: organization._id,
+        title: 'This is a new poll',
+        description: 'I am the description of this poll',
+        options: [
+          'Option 1',
+          'Option 2',
+          'Option 3',
+          'Option 4'
+        ]
+      })
       .then(res => {
         expect(res.body).toEqual({
           _id: expect.anything(),
-          organization: expect.any(mongoose.Schema.Types.ObjectId),
+          organization: organization.id,
           title: 'This is a new poll',
           description: 'I am the description of this poll',
           options: [
