@@ -188,4 +188,38 @@ describe('voting-app routes', () => {
         });
       });
   });
+
+  // delete a poll
+  it('can delete a poll', () => {
+    return Poll
+      .create({
+        organization: organization._id,
+        title: 'This is a new poll',
+        description: 'I am the description of this poll',
+        options: [
+          'Option 1',
+          'Option 2',
+          'Option 3',
+          'Option 4'
+        ]
+      })
+      .then(poll => request(app)
+        .delete(`/api/v1/polls/${poll.id}`))
+      .then(async(res) => {
+        // console.log('res', res.body);
+        expect(res.body).toEqual({
+          _id: expect.anything(),
+          organization: organization.id,
+          title: 'This is a new poll',
+          description: 'I am the description of this poll',
+          options: [
+            'Option 1',
+            'Option 2',
+            'Option 3',
+            'Option 4'
+          ],
+          __v: 0
+        });
+      });
+  });
 });
