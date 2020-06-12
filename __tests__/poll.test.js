@@ -124,9 +124,14 @@ describe('voting-app routes', () => {
           'Option 4'
         ]
       })
-      .then(poll => request(app)
-        .get(`/api/v1/polls/${poll.id}`))
-      .then(async(res) => {
+      .then(async(poll) => await Vote.create({
+        poll: poll._id,
+        user: user._id,
+        option: 2
+      }))
+      .then(vote => request(app)
+        .get(`/api/v1/polls/${vote.poll}`))
+      .then((res) => {
         // console.log('res', res.body);
         expect(res.body).toEqual({
           _id: expect.anything(),
