@@ -160,22 +160,6 @@ describe('voting-app routes', () => {
         });
       });
   });
-});
-
-describe('get all organizations with the user', () => {
-  beforeAll(async() => {
-    const uri = await mongod.getUri();
-    return connect(uri);
-  });
-
-  beforeEach(() => {
-    return mongoose.connection.dropDatabase();
-  });
-
-  afterAll(async() => {
-    await mongoose.connection.close();
-    return mongod.stop();
-  });
 
   it('can get an organization and all members of', async() => {
     const organization = await Organization.create({

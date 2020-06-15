@@ -133,39 +133,6 @@ describe('voting-app routes', () => {
         });
       });
   });
-});
-
-describe('voting-app routes', () => {
-  beforeAll(async() => {
-    const uri = await mongod.getUri();
-    return connect(uri);
-  });
-
-  beforeEach(() => {
-    return mongoose.connection.dropDatabase();
-  });
-
-  let organization, user;
-  beforeEach(async() => {
-    organization = await Organization.create({
-      title: 'A New Org',
-      description: 'this is a very cool org',
-      imageUrl: 'placekitten.com/400/400'
-    });
-
-    user = await User.create({
-      name: 'Logan Scott',
-      phone: '123 456 7890',
-      email: 'email@email.com',
-      communicationMedium: 'email',
-      imageUrl: 'placekitten.com/400/400'
-    });
-  });
-
-  afterAll(async() => {
-    await mongoose.connection.close();
-    return mongod.stop();
-  });
 
   // delete a membership and all votes by user
   it('can delete a membership and all votes by user', async() => {

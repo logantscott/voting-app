@@ -120,22 +120,6 @@ describe('voting-app routes', () => {
         });
       });
   });
-});
-
-describe('can delete all associated polls and votes of deleted organization', () => {
-  beforeAll(async() => {
-    const uri = await mongod.getUri();
-    return connect(uri);
-  });
-
-  beforeEach(() => {
-    return mongoose.connection.dropDatabase();
-  });
-
-  afterAll(async() => {
-    await mongoose.connection.close();
-    return mongod.stop();
-  });
 
   it('can delete all associated polls of deleted organization', async() => {
 
@@ -230,22 +214,6 @@ describe('can delete all associated polls and votes of deleted organization', ()
       .then(res => {
         expect(res).toEqual([]);
       });
-  });
-});
-
-describe('get all members with an organization', () => {
-  beforeAll(async() => {
-    const uri = await mongod.getUri();
-    return connect(uri);
-  });
-
-  beforeEach(() => {
-    return mongoose.connection.dropDatabase();
-  });
-
-  afterAll(async() => {
-    await mongoose.connection.close();
-    return mongod.stop();
   });
 
   it('can get an organization and all members of', async() => {
