@@ -149,7 +149,7 @@ describe('can delete all associated polls and votes of deleted organization', ()
       }
     ]);
 
-    await Poll.create([
+    const polls = await Poll.create([
       {
         organization: organization[0]._id,
         title: 'Poll 1',
@@ -176,6 +176,29 @@ describe('can delete all associated polls and votes of deleted organization', ()
       }
     ]);
 
+    await Vote.create([
+      {
+        poll: polls[0]._id,
+        user: mongoose.Types.ObjectId(),
+        option: mongoose.Types.ObjectId()
+      },
+      {
+        poll: polls[1]._id,
+        user: mongoose.Types.ObjectId(),
+        option: mongoose.Types.ObjectId()
+      },
+      { // should not delete
+        poll: polls[2]._id,
+        user: mongoose.Types.ObjectId(),
+        option: mongoose.Types.ObjectId()
+      },
+      {
+        poll: polls[3]._id,
+        user: mongoose.Types.ObjectId(),
+        option: mongoose.Types.ObjectId()
+      }
+    ]);
+
     // const polls = await Poll.find({
     //   organization: organization[0]._id
     // });
@@ -196,6 +219,11 @@ describe('can delete all associated polls and votes of deleted organization', ()
         });
 
         return Poll.find({ organization: organization[0].id });
+      })
+      .then(res => {
+        expect(res).toEqual([]);
+
+        return Vote.find().where('poll').in([polls[0]._id, polls[1]._id, polls[3]._id]);
       })
       .then(res => {
         expect(res).toEqual([]);
