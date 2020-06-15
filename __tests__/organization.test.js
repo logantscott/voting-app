@@ -107,7 +107,7 @@ describe('voting-app routes', () => {
       description: 'this is a very cool org',
       imageUrl: 'placekitten.com/400/400'
     })
-      .then(organization => request(app).delete(`/api/v1/organizations/${organization._id}`))
+      .then(async(organization) => request(app).delete(`/api/v1/organizations/${organization._id}`))
       .then(res => {
         expect(res.body).toEqual({
           _id: expect.anything(),
