@@ -41,10 +41,10 @@ describe('voting-app routes', () => {
       title: 'This is a new poll',
       description: 'I am the description of this poll',
       options: [
-        'Option 1',
-        'Option 2',
-        'Option 3',
-        'Option 4'
+        { option: 'Option 1' },
+        { option: 'Option 2' },
+        { option: 'Option 3' },
+        { option: 'Option 4' }
       ]
     });
   });
@@ -61,26 +61,26 @@ describe('voting-app routes', () => {
       .send({
         poll: poll._id,
         user: user._id,
-        option: 2
+        option: poll.options[1].id
       })
       .then(res => {
         expect(res.body).toEqual({
           _id: expect.anything(),
           poll: poll.id,
           user: user.id,
-          option: 2,
+          option: poll.options[1].id,
           __v: 0
         });
       });
   });
 
   // get all votes on a poll
-  it('can get all votes on a poll', () => {
+  it('can get all votes on a poll', async() => {
     return Vote
       .create({
         poll: poll._id,
         user: user._id,
-        option: 2
+        option: poll.options[1]._id
       })
       .then(() => request(app)
         .get(`/api/v1/votes?poll=${poll.id}`))
@@ -89,7 +89,7 @@ describe('voting-app routes', () => {
           _id: expect.anything(),
           poll: poll.id,
           user: user.id,
-          option: 2,
+          option: poll.options[1].id,
           __v: 0
         }]);
       });
@@ -101,7 +101,7 @@ describe('voting-app routes', () => {
       .create({
         poll: poll._id,
         user: user._id,
-        option: 2
+        option: poll.options[1].id
       })
       .then(() => request(app)
         .get(`/api/v1/votes?user=${user.id}`))
@@ -110,7 +110,7 @@ describe('voting-app routes', () => {
           _id: expect.anything(),
           poll: poll.id,
           user: user.id,
-          option: 2,
+          option: poll.options[1].id,
           __v: 0
         }]);
       });
@@ -122,19 +122,19 @@ describe('voting-app routes', () => {
       .create({
         poll: poll._id,
         user: user._id,
-        option: 2
+        option: poll.options[1].id
       })
       .then(vote => request(app)
         .patch(`/api/v1/votes/${vote.id}`)
         .send({
-          option: 3
+          option: poll.options[2].id
         }))
       .then(res => {
         expect(res.body).toEqual({
           _id: expect.anything(),
           poll: poll.id,
           user: user.id,
-          option: 3,
+          option: poll.options[2].id,
           __v: 0
         });
       });

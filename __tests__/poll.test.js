@@ -8,7 +8,6 @@ const app = require('../lib/app');
 const Poll = require('../lib/models/Poll');
 const Organization = require('../lib/models/Organization');
 const Vote = require('../lib/models/Vote');
-const User = require('../lib/models/User');
 
 describe('voting-app routes', () => {
   beforeAll(async() => {
@@ -21,19 +20,10 @@ describe('voting-app routes', () => {
   });
 
   let organization;
-  let user;
   beforeEach(async() => {
     organization = await Organization.create({
       title: 'A New Org',
       description: 'this is a very cool org',
-      imageUrl: 'placekitten.com/400/400'
-    });
-
-    user = await User.create({
-      name: 'Logan Scott',
-      phone: '123 456 7890',
-      email: 'email@email.com',
-      communicationMedium: 'email',
       imageUrl: 'placekitten.com/400/400'
     });
   });
@@ -52,10 +42,10 @@ describe('voting-app routes', () => {
         title: 'This is a new poll',
         description: 'I am the description of this poll',
         options: [
-          'Option 1',
-          'Option 2',
-          'Option 3',
-          'Option 4'
+          { option: 'Option 1' },
+          { option: 'Option 2' },
+          { option: 'Option 3' },
+          { option: 'Option 4' }
         ]
       })
       .then(res => {
@@ -65,10 +55,10 @@ describe('voting-app routes', () => {
           title: 'This is a new poll',
           description: 'I am the description of this poll',
           options: [
-            'Option 1',
-            'Option 2',
-            'Option 3',
-            'Option 4'
+            { _id: expect.anything(), option: 'Option 1' },
+            { _id: expect.anything(), option: 'Option 2' },
+            { _id: expect.anything(), option: 'Option 3' },
+            { _id: expect.anything(), option: 'Option 4' }
           ],
           __v: 0
         });
@@ -83,10 +73,10 @@ describe('voting-app routes', () => {
         title: 'This is a new poll',
         description: 'I am the description of this poll',
         options: [
-          'Option 1',
-          'Option 2',
-          'Option 3',
-          'Option 4'
+          { option: 'Option 1' },
+          { option: 'Option 2' },
+          { option: 'Option 3' },
+          { option: 'Option 4' }
         ]
       },
       {
@@ -94,10 +84,10 @@ describe('voting-app routes', () => {
         title: 'FAKE poll',
         description: 'FAKE poll description',
         options: [
-          'Option 1',
-          'Option 2',
-          'Option 3',
-          'Option 4'
+          { option: 'Option 5' },
+          { option: 'Option 6' },
+          { option: 'Option 7' },
+          { option: 'Option 8' }
         ]
       }])
       .then(() => request(app)
@@ -111,26 +101,34 @@ describe('voting-app routes', () => {
   });
 
   // get details of a poll including organization details and votes aggregation
-  it('can get details of a poll including organization details and votes aggregation', () => {
-    return Poll
+  it('can get details of a poll including organization details and votes aggregation', async() => {
+    const poll = await Poll
       .create({
         organization: organization._id,
         title: 'This is a new poll',
         description: 'I am the description of this poll',
         options: [
-          'Option 1',
-          'Option 2',
-          'Option 3',
-          'Option 4'
+          { option: 'Option 1' },
+          { option: 'Option 2' },
+          { option: 'Option 3' },
+          { option: 'Option 4' }
         ]
       })
-      .then(async(poll) => await Vote.create({
-        poll: poll._id,
-        user: user._id,
-        option: 2
-      }))
-      .then(vote => request(app)
-        .get(`/api/v1/polls/${vote.poll}`))
+      .then(res => res);
+      
+    await Vote.create([{
+      poll: poll._id,
+      user: mongoose.Types.ObjectId(),
+      option: mongoose.Types.ObjectId()
+    },
+    {
+      poll: poll._id,
+      user: mongoose.Types.ObjectId(),
+      option: mongoose.Types.ObjectId()
+    }]);
+
+    return request(app)
+      .get(`/api/v1/polls/${poll.id}`)
       .then((res) => {
         // console.log('res', res.body);
         expect(res.body).toEqual({
@@ -145,29 +143,29 @@ describe('voting-app routes', () => {
           title: 'This is a new poll',
           description: 'I am the description of this poll',
           options: [
-            'Option 1',
-            'Option 2',
-            'Option 3',
-            'Option 4'
+            { _id: expect.anything(), option: 'Option 1' },
+            { _id: expect.anything(), option: 'Option 2' },
+            { _id: expect.anything(), option: 'Option 3' },
+            { _id: expect.anything(), option: 'Option 4' }
           ],
           __v: 0,
-          votes: 1
+          votes: 2
         });
       });
   });
 
-  // update a poll's title and/or description
-  it('can update a polls title and/or description', () => {
+  // update a poll's title and/or description, with updated version key
+  it('can update a polls title and/or description, with updated version key', () => {
     return Poll
       .create({
         organization: organization._id,
         title: 'This is a new poll',
         description: 'I am the description of this poll',
         options: [
-          'Option 1',
-          'Option 2',
-          'Option 3',
-          'Option 4'
+          { option: 'Option 1' },
+          { option: 'Option 2' },
+          { option: 'Option 3' },
+          { option: 'Option 4' }
         ]
       })
       .then(poll => request(app)
@@ -184,12 +182,12 @@ describe('voting-app routes', () => {
           title: 'This is an updated Poll',
           description: 'I am edited',
           options: [
-            'Option 1',
-            'Option 2',
-            'Option 3',
-            'Option 4'
+            { _id: expect.anything(), option: 'Option 1' },
+            { _id: expect.anything(), option: 'Option 2' },
+            { _id: expect.anything(), option: 'Option 3' },
+            { _id: expect.anything(), option: 'Option 4' }
           ],
-          __v: 0
+          __v: 1
         });
       });
   });
@@ -202,10 +200,10 @@ describe('voting-app routes', () => {
         title: 'This is a new poll',
         description: 'I am the description of this poll',
         options: [
-          'Option 1',
-          'Option 2',
-          'Option 3',
-          'Option 4'
+          { option: 'Option 1' },
+          { option: 'Option 2' },
+          { option: 'Option 3' },
+          { option: 'Option 4' }
         ]
       })
       .then(poll => request(app)
@@ -218,10 +216,10 @@ describe('voting-app routes', () => {
           title: 'This is a new poll',
           description: 'I am the description of this poll',
           options: [
-            'Option 1',
-            'Option 2',
-            'Option 3',
-            'Option 4'
+            { _id: expect.anything(), option: 'Option 1' },
+            { _id: expect.anything(), option: 'Option 2' },
+            { _id: expect.anything(), option: 'Option 3' },
+            { _id: expect.anything(), option: 'Option 4' }
           ],
           __v: 0
         });
