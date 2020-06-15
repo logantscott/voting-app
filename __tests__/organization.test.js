@@ -6,6 +6,8 @@ const connect = require('../lib/utils/connect');
 const request = require('supertest');
 const app = require('../lib/app');
 const Organization = require('../lib/models/Organization');
+const Poll = require('../lib/models/Poll');
+const Vote = require('../lib/models/Vote');
 
 describe('voting-app routes', () => {
   beforeAll(async() => {
@@ -115,5 +117,78 @@ describe('voting-app routes', () => {
           __v: 0
         });
       });
+  });
+});
+
+describe('can delete all associated polls and votes of deleted organization', () => {
+  beforeAll(async() => {
+    const uri = await mongod.getUri();
+    return connect(uri);
+  });
+
+  beforeEach(() => {
+    return mongoose.connection.dropDatabase();
+  });
+
+  afterAll(async() => {
+    await mongoose.connection.close();
+    return mongod.stop();
+  });
+
+  it('can delete all associated polls of deleted organization', async() => {
+
+    const organization = await Organization.create([
+      {
+        title: 'A New Org',
+        description: 'this is a very cool org',
+        imageUrl: 'placekitten.com/400/400'
+      },      {
+        title: 'A Second Org',
+        description: 'this is another very cool org',
+        imageUrl: 'placekitten.com/400/400'
+      }
+    ]);
+
+    await Poll.create([
+      {
+        organization: organization[0]._id,
+        title: 'Poll 1',
+        description: 'I am the description of this poll',
+        options: [{ option: 'Option 1' }, { option: 'Option 2' }, { option: 'Option 3' }, { option: 'Option 4' }]
+      },
+      {
+        organization: organization[0]._id,
+        title: 'Poll 2',
+        description: 'I am the description of this poll',
+        options: [{ option: 'Option 1' }, { option: 'Option 2' }, { option: 'Option 3' }, { option: 'Option 4' }]
+      },
+      { // should not delete
+        organization: organization[1]._id,
+        title: 'Poll 3',
+        description: 'I am the description of this poll',
+        options: [{ option: 'Option 1' }, { option: 'Option 2' }, { option: 'Option 3' }, { option: 'Option 4' }]
+      },
+      {
+        organization: organization[0]._id,
+        title: 'Poll 4',
+        description: 'I am the description of this poll',
+        options: [{ option: 'Option 1' }, { option: 'Option 2' }, { option: 'Option 3' }, { option: 'Option 4' }]
+      }
+    ]);
+
+    // const polls = await Poll.find({
+    //   organization: organization[0]._id
+    // });
+
+    // console.log(polls);
+
+    request(app).delete(`/api/v1/organizations/${organization[0]._id}`);
+
+    return Poll.find({
+      organization: organization[0].id
+    })
+      .then(res => 
+        expect(res).toEqual([])
+      );
   });
 });
