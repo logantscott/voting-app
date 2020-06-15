@@ -184,11 +184,21 @@ describe('can delete all associated polls and votes of deleted organization', ()
 
     request(app).delete(`/api/v1/organizations/${organization[0]._id}`);
 
-    return Poll.find({
-      organization: organization[0].id
-    })
-      .then(res => 
-        expect(res).toEqual([])
-      );
+    return request(app)
+      .delete(`/api/v1/organizations/${organization[0].id}`)
+      .then(res => {
+        expect(res.body).toEqual({
+          _id: expect.anything(),
+          title: 'A New Org',
+          description: 'this is a very cool org',
+          imageUrl: 'placekitten.com/400/400',
+          __v: 0
+        });
+
+        return Poll.find({ organization: organization[0].id });
+      })
+      .then(res => {
+        expect(res).toEqual([]);
+      });
   });
 });
