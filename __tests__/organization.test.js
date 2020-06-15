@@ -8,6 +8,8 @@ const app = require('../lib/app');
 const Organization = require('../lib/models/Organization');
 const Poll = require('../lib/models/Poll');
 const Vote = require('../lib/models/Vote');
+const User = require('../lib/models/User');
+const Membership = require('../lib/models/Membership');
 
 describe('voting-app routes', () => {
   beforeAll(async() => {
@@ -228,5 +230,60 @@ describe('can delete all associated polls and votes of deleted organization', ()
       .then(res => {
         expect(res).toEqual([]);
       });
+  });
+});
+
+describe('voting-app routes', () => {
+  beforeAll(async() => {
+    const uri = await mongod.getUri();
+    return connect(uri);
+  });
+
+  beforeEach(() => {
+    return mongoose.connection.dropDatabase();
+  });
+
+  afterAll(async() => {
+    await mongoose.connection.close();
+    return mongod.stop();
+  });
+
+  it('can get an organization and all members of', async() => {
+    const organization = await Organization.create({
+      title: 'A New Org',
+      description: 'this is a very cool org',
+      imageUrl: 'placekitten.com/400/400',
+    });
+
+    const user = await User.create({
+      name: 'Logan Scott',
+      phone: '123 456 7890',
+      email: 'email@email.com',
+      communicationMedium: 'email',
+      imageUrl: 'placekitten.com/400/400'
+    });
+
+    // eslint-disable-next-line no-unused-vars
+    const membership = await Membership.create({
+      organization: organization._id,
+      user: user._id
+    });
+
+    return request(app)
+      .get(`/api/v1/organizations/${organization.id}?members=true`)
+      .then(res => expect(res.body).toEqual({
+        _id: expect.anything(),
+        title: 'A New Org',
+        description: 'this is a very cool org',
+        imageUrl: 'placekitten.com/400/400',
+        __v: 0,
+        members: [
+          { // select name, imageUrl
+            _id: expect.anything(),
+            name: 'Logan Scott',
+            imageUrl: 'placekitten.com/400/400'
+          }
+        ]
+      }));
   });
 });
