@@ -233,7 +233,7 @@ describe('can delete all associated polls and votes of deleted organization', ()
   });
 });
 
-describe('voting-app routes', () => {
+describe('get all members with an organization', () => {
   beforeAll(async() => {
     const uri = await mongod.getUri();
     return connect(uri);
