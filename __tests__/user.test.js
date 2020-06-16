@@ -9,7 +9,7 @@ const User = require('../lib/models/User');
 const Organization = require('../lib/models/Organization');
 const Membership = require('../lib/models/Membership');
 
-describe('voting-app routes', () => {
+describe('user routes', () => {
   beforeAll(async() => {
     const uri = await mongod.getUri();
     return connect(uri);

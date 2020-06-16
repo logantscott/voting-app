@@ -11,7 +11,7 @@ const Vote = require('../lib/models/Vote');
 const User = require('../lib/models/User');
 const Membership = require('../lib/models/Membership');
 
-describe('voting-app routes', () => {
+describe('organization routes', () => {
   beforeAll(async() => {
     const uri = await mongod.getUri();
     return connect(uri);
@@ -184,14 +184,6 @@ describe('voting-app routes', () => {
         option: mongoose.Types.ObjectId()
       }
     ]);
-
-    // const polls = await Poll.find({
-    //   organization: organization[0]._id
-    // });
-
-    // console.log(polls);
-
-    request(app).delete(`/api/v1/organizations/${organization[0]._id}`);
 
     return request(app)
       .delete(`/api/v1/organizations/${organization[0].id}`)

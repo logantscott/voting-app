@@ -9,7 +9,7 @@ const Poll = require('../lib/models/Poll');
 const Organization = require('../lib/models/Organization');
 const Vote = require('../lib/models/Vote');
 
-describe('voting-app routes', () => {
+describe('poll routes', () => {
   beforeAll(async() => {
     const uri = await mongod.getUri();
     return connect(uri);

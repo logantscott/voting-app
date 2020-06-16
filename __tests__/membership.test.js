@@ -11,7 +11,7 @@ const Organization = require('../lib/models/Organization');
 const Vote = require('../lib/models/Vote');
 const Poll = require('../lib/models/Poll');
 
-describe('voting-app routes', () => {
+describe('membership routes', () => {
   beforeAll(async() => {
     const uri = await mongod.getUri();
     return connect(uri);
@@ -135,67 +135,67 @@ describe('voting-app routes', () => {
   });
 
   // delete a membership and all votes by user
-  // it('can delete a membership and all votes by user', async() => {
+  it('can delete a membership and all votes by user', async() => {
 
-  //   const membership = await Membership
-  //     .create({
-  //       organization: organization._id,
-  //       user: user._id
-  //     });
+    const membership = await Membership
+      .create({
+        organization: organization._id,
+        user: user._id
+      });
 
-  //   const polls = await Poll
-  //     .create([
-  //       {
-  //         organization: organization._id,
-  //         title: 'Poll 1',
-  //         description: 'I am the description of this poll',
-  //         options: [{ option: 'Option 1' }, { option: 'Option 2' }, { option: 'Option 3' }, { option: 'Option 4' }]
-  //       },
-  //       { // votes on this poll should not get deleted
-  //         organization: mongoose.Types.ObjectId(),
-  //         title: 'Poll 2',
-  //         description: 'I am the description of this poll',
-  //         options: [{ option: 'Option 1' }, { option: 'Option 2' }, { option: 'Option 3' }, { option: 'Option 4' }]
-  //       },
-  //       {
-  //         organization: organization._id,
-  //         title: 'Poll 3',
-  //         description: 'I am the description of this poll',
-  //         options: [{ option: 'Option 1' }, { option: 'Option 2' }, { option: 'Option 3' }, { option: 'Option 4' }]
-  //       }
-  //     ]);
+    const polls = await Poll
+      .create([
+        {
+          organization: organization._id,
+          title: 'Poll 1',
+          description: 'I am the description of this poll',
+          options: [{ option: 'Option 1' }, { option: 'Option 2' }, { option: 'Option 3' }, { option: 'Option 4' }]
+        },
+        { // votes on this poll should not get deleted
+          organization: mongoose.Types.ObjectId(),
+          title: 'Poll 2',
+          description: 'I am the description of this poll',
+          options: [{ option: 'Option 1' }, { option: 'Option 2' }, { option: 'Option 3' }, { option: 'Option 4' }]
+        },
+        {
+          organization: organization._id,
+          title: 'Poll 3',
+          description: 'I am the description of this poll',
+          options: [{ option: 'Option 1' }, { option: 'Option 2' }, { option: 'Option 3' }, { option: 'Option 4' }]
+        }
+      ]);
 
-  //   await Vote
-  //     .create([
-  //       {
-  //         poll: polls[0]._id,
-  //         user: user._id,
-  //         option: mongoose.Types.ObjectId()
-  //       },
-  //       {
-  //         poll: polls[1]._id,
-  //         user: user._id,
-  //         option: mongoose.Types.ObjectId()
-  //       },
-  //       {
-  //         poll: polls[2]._id,
-  //         user: user._id,
-  //         option: mongoose.Types.ObjectId()
-  //       }
-  //     ]);
+    await Vote
+      .create([
+        {
+          poll: polls[0]._id,
+          user: user._id,
+          option: mongoose.Types.ObjectId()
+        },
+        {
+          poll: polls[1]._id,
+          user: user._id,
+          option: mongoose.Types.ObjectId()
+        },
+        {
+          poll: polls[2]._id,
+          user: user._id,
+          option: mongoose.Types.ObjectId()
+        }
+      ]);
     
-  //   return request(app)
-  //     .delete(`/api/v1/memberships/${membership.id}`)
-  //     .then(res => {
-  //       expect(res.body).toEqual({
-  //         _id: expect.anything(),
-  //         organization: organization.id,
-  //         user: user.id,
-  //         __v: 0
-  //       });
+    return request(app)
+      .delete(`/api/v1/memberships/${membership.id}`)
+      .then(res => {
+        expect(res.body).toEqual({
+          _id: expect.anything(),
+          organization: organization.id,
+          user: user.id,
+          __v: 0
+        });
 
-  //       return Vote.find({ user: user.id, poll: { $in: [polls[0]._id, polls[2]._id] } })
-  //         .then(res => expect(res).toEqual([]));
-  //     });
-  // });
+        return Vote.find({ user: user.id, poll: { $in: [polls[0]._id, polls[2]._id] } })
+          .then(res => expect(res).toEqual([]));
+      });
+  });
 });
