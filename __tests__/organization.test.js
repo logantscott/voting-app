@@ -6,8 +6,12 @@ const connect = require('../lib/utils/connect');
 const request = require('supertest');
 const app = require('../lib/app');
 const Organization = require('../lib/models/Organization');
+const Poll = require('../lib/models/Poll');
+const Vote = require('../lib/models/Vote');
+const User = require('../lib/models/User');
+const Membership = require('../lib/models/Membership');
 
-describe('voting-app routes', () => {
+describe('organization routes', () => {
   beforeAll(async() => {
     const uri = await mongod.getUri();
     return connect(uri);
@@ -105,7 +109,7 @@ describe('voting-app routes', () => {
       description: 'this is a very cool org',
       imageUrl: 'placekitten.com/400/400'
     })
-      .then(organization => request(app).delete(`/api/v1/organizations/${organization._id}`))
+      .then(async(organization) => request(app).delete(`/api/v1/organizations/${organization._id}`))
       .then(res => {
         expect(res.body).toEqual({
           _id: expect.anything(),
@@ -115,5 +119,131 @@ describe('voting-app routes', () => {
           __v: 0
         });
       });
+  });
+
+  it('can delete all associated polls of deleted organization', async() => {
+
+    const organization = await Organization.create([
+      {
+        title: 'A New Org',
+        description: 'this is a very cool org',
+        imageUrl: 'placekitten.com/400/400'
+      },      {
+        title: 'A Second Org',
+        description: 'this is another very cool org',
+        imageUrl: 'placekitten.com/400/400'
+      }
+    ]);
+
+    const polls = await Poll.create([
+      {
+        organization: organization[0]._id,
+        title: 'Poll 1',
+        description: 'I am the description of this poll',
+        options: [{ option: 'Option 1' }, { option: 'Option 2' }, { option: 'Option 3' }, { option: 'Option 4' }]
+      },
+      {
+        organization: organization[0]._id,
+        title: 'Poll 2',
+        description: 'I am the description of this poll',
+        options: [{ option: 'Option 1' }, { option: 'Option 2' }, { option: 'Option 3' }, { option: 'Option 4' }]
+      },
+      { // should not delete
+        organization: organization[1]._id,
+        title: 'Poll 3',
+        description: 'I am the description of this poll',
+        options: [{ option: 'Option 1' }, { option: 'Option 2' }, { option: 'Option 3' }, { option: 'Option 4' }]
+      },
+      {
+        organization: organization[0]._id,
+        title: 'Poll 4',
+        description: 'I am the description of this poll',
+        options: [{ option: 'Option 1' }, { option: 'Option 2' }, { option: 'Option 3' }, { option: 'Option 4' }]
+      }
+    ]);
+
+    await Vote.create([
+      {
+        poll: polls[0]._id,
+        user: mongoose.Types.ObjectId(),
+        option: mongoose.Types.ObjectId()
+      },
+      {
+        poll: polls[1]._id,
+        user: mongoose.Types.ObjectId(),
+        option: mongoose.Types.ObjectId()
+      },
+      { // should not delete
+        poll: polls[2]._id,
+        user: mongoose.Types.ObjectId(),
+        option: mongoose.Types.ObjectId()
+      },
+      {
+        poll: polls[3]._id,
+        user: mongoose.Types.ObjectId(),
+        option: mongoose.Types.ObjectId()
+      }
+    ]);
+
+    return request(app)
+      .delete(`/api/v1/organizations/${organization[0].id}`)
+      .then(res => {
+        expect(res.body).toEqual({
+          _id: expect.anything(),
+          title: 'A New Org',
+          description: 'this is a very cool org',
+          imageUrl: 'placekitten.com/400/400',
+          __v: 0
+        });
+
+        return Poll.find({ organization: organization[0].id });
+      })
+      .then(res => {
+        expect(res).toEqual([]);
+
+        return Vote.find().where('poll').in([polls[0]._id, polls[1]._id, polls[3]._id]);
+      })
+      .then(res => {
+        expect(res).toEqual([]);
+      });
+  });
+
+  it('can get an organization and all members of', async() => {
+    const organization = await Organization.create({
+      title: 'A New Org',
+      description: 'this is a very cool org',
+      imageUrl: 'placekitten.com/400/400',
+    });
+
+    const user = await User.create({
+      name: 'Logan Scott',
+      phone: '123 456 7890',
+      email: 'email@email.com',
+      communicationMedium: 'email',
+      imageUrl: 'placekitten.com/400/400'
+    });
+
+    // eslint-disable-next-line no-unused-vars
+    const membership = await Membership.create({
+      organization: organization._id,
+      user: user._id
+    });
+
+    return request(app)
+      .get(`/api/v1/organizations/${organization.id}?members=true`)
+      .then(res => expect(res.body).toEqual({
+        _id: expect.anything(),
+        title: 'A New Org',
+        description: 'this is a very cool org',
+        imageUrl: 'placekitten.com/400/400',
+        __v: 0,
+        members: [
+          { // select name, imageUrl
+            _id: expect.anything(),
+            name: 'Logan Scott',
+            imageUrl: 'placekitten.com/400/400'
+          }
+        ]
+      }));
   });
 });

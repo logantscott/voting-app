@@ -10,7 +10,7 @@ const User = require('../lib/models/User');
 const Organization = require('../lib/models/Organization');
 const Poll = require('../lib/models/Poll');
 
-describe('voting-app routes', () => {
+describe('vote routes', () => {
   beforeAll(async() => {
     const uri = await mongod.getUri();
     return connect(uri);
@@ -138,5 +138,39 @@ describe('voting-app routes', () => {
           __v: 0
         });
       });
+  });
+
+  it('can create vote, only vote once per user/poll combo', async() => {
+
+    // apparently this helps make indexes work with mongo memory server
+    Vote.ensureIndexes();
+
+    await request(app)
+      .post('/api/v1/votes')
+      .send({
+        poll: poll._id,
+        user: user._id,
+        option: poll.options[1].id
+      })
+      .then(res => res.body);
+
+    await request(app)
+      .post('/api/v1/votes')
+      .send({
+        poll: poll._id,
+        user: user._id,
+        option: poll.options[1].id
+      })
+      .then(res => res.body);
+
+    return request(app)
+      .get(`/api/v1/votes?poll=${poll.id}&user=${user.id}`)
+      .then(res => expect(res.body).toEqual([{
+        _id: expect.anything(),
+        poll: poll.id,
+        user: user.id,
+        option: poll.options[1].id,
+        __v: 0
+      }]));
   });
 });
