@@ -212,4 +212,37 @@ describe('user routes', () => {
       }));
   });
 
+  
+  it('sets a password hash', () => {
+    const user = new User({
+      email: 'logan@test.com',
+      password: '1234',
+      profileImage: 'placekitten.com/400/400'
+    });
+
+    expect(user.passwordHash).toEqual(expect.any(String));
+  });
+
+  it('has an authToken method', () => {
+    const user = new User({
+      email: 'logan@test.com',
+      password: '1234',
+      profileImage: 'placekitten.com/400/400'
+    });
+
+    expect(user.authToken()).toEqual(expect.any(String));
+  });
+
+  it('can verify a token and return a user', () => {
+    const user = new User({
+      email: 'logan@test.com',
+      password: '1234',
+      profileImage: 'placekitten.com/400/400'
+    });
+
+    const token = user.authToken();
+    const verifiedUser = User.verifyToken(token);
+
+    expect(verifiedUser.toJSON()).toEqual(user.toJSON());
+  });
 });
