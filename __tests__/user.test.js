@@ -1,3 +1,5 @@
+require('dotenv').config();
+
 const { MongoMemoryServer } = require('mongodb-memory-server');
 const mongod = new MongoMemoryServer();
 const mongoose = require('mongoose');
@@ -27,11 +29,12 @@ describe('user routes', () => {
   // create a user
   it('can create a user', () => {
     return request(app)
-      .post('/api/v1/users')
+      .post('/api/v1/users/signup')
       .send({
         name: 'Logan Scott',
         phone: '123 456 7890',
         email: 'email@email.com',
+        password: '1234',
         communicationMedium: 'email',
         imageUrl: 'placekitten.com/400/400'
       })
@@ -54,6 +57,7 @@ describe('user routes', () => {
       name: 'Logan Scott',
       phone: '123 456 7890',
       email: 'email@email.com',
+      password: '1234',
       communicationMedium: 'email',
       imageUrl: 'placekitten.com/400/400'
     })
@@ -72,6 +76,7 @@ describe('user routes', () => {
       name: 'Logan Scott',
       phone: '123 456 7890',
       email: 'email@email.com',
+      password: '1234',
       communicationMedium: 'email',
       imageUrl: 'placekitten.com/400/400'
     })
@@ -95,6 +100,7 @@ describe('user routes', () => {
       name: 'Logan Scott',
       phone: '123 456 7890',
       email: 'email@email.com',
+      password: '1234',
       communicationMedium: 'email',
       imageUrl: 'placekitten.com/400/400'
     },
@@ -102,6 +108,7 @@ describe('user routes', () => {
       name: 'Phony',
       phone: '123 456 7890',
       email: 'email@email.com',
+      password: '5678',
       communicationMedium: 'phone',
       imageUrl: 'placekitten.com/400/400'
     }])
@@ -120,6 +127,7 @@ describe('user routes', () => {
       name: 'Logan Scott',
       phone: '123 456 7890',
       email: 'email@email.com',
+      password: '1234',
       communicationMedium: 'email',
       imageUrl: 'placekitten.com/400/400'
     })
@@ -144,6 +152,7 @@ describe('user routes', () => {
       name: 'Logan Scott',
       phone: '123 456 7890',
       email: 'email@email.com',
+      password: '1234',
       communicationMedium: 'email',
       imageUrl: 'placekitten.com/400/400'
     })
@@ -172,6 +181,7 @@ describe('user routes', () => {
       name: 'Logan Scott',
       phone: '123 456 7890',
       email: 'email@email.com',
+      password: '1234',
       communicationMedium: 'email',
       imageUrl: 'placekitten.com/400/400'
     });
@@ -201,4 +211,5 @@ describe('user routes', () => {
         ]
       }));
   });
+
 });
