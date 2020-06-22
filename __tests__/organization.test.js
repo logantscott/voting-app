@@ -1,3 +1,5 @@
+require('dotenv').config();
+
 const { MongoMemoryServer } = require('mongodb-memory-server');
 const mongod = new MongoMemoryServer();
 const mongoose = require('mongoose');
@@ -21,6 +23,27 @@ describe('organization routes', () => {
     return mongoose.connection.dropDatabase();
   });
 
+  let user, agent;
+  beforeEach(async() => {
+    agent = request.agent(app);
+
+    user = await User.create({
+      name: 'Logan Scott',
+      phone: '123 456 7890',
+      email: 'email@email.com',
+      password: '1234',
+      communicationMedium: 'email',
+      imageUrl: 'placekitten.com/400/400'
+    });
+
+    await agent
+      .post('/api/v1/users/login')
+      .send({
+        email: 'email@email.com',
+        password: '1234'
+      });
+  });
+
   afterAll(async() => {
     await mongoose.connection.close();
     return mongod.stop();
@@ -28,7 +51,7 @@ describe('organization routes', () => {
 
   // create an organization
   it('can create an organization', () => {
-    return request(app)
+    return agent
       .post('/api/v1/organizations')
       .send({
         title: 'A New Org',
@@ -53,7 +76,7 @@ describe('organization routes', () => {
       description: 'this is a very cool org',
       imageUrl: 'placekitten.com/400/400'
     })
-      .then(() => request(app).get('/api/v1/organizations'))
+      .then(() => agent.get('/api/v1/organizations'))
       .then(res => {
         expect(res.body).toEqual([{
           _id: expect.anything(),
@@ -70,7 +93,7 @@ describe('organization routes', () => {
       description: 'this is a very cool org',
       imageUrl: 'placekitten.com/400/400'
     })
-      .then(organization => request(app).get(`/api/v1/organizations/${organization._id}`))
+      .then(organization => agent.get(`/api/v1/organizations/${organization._id}`))
       .then(res => {
         expect(res.body).toEqual({
           _id: expect.anything(),
@@ -89,7 +112,7 @@ describe('organization routes', () => {
       description: 'this is a very cool org',
       imageUrl: 'placekitten.com/400/400'
     })
-      .then(organization => request(app).patch(`/api/v1/organizations/${organization._id}`)
+      .then(organization => agent.patch(`/api/v1/organizations/${organization._id}`)
         .send({ description: 'this org kinda sucks' }))
       .then(res => {
         expect(res.body).toEqual({
@@ -109,7 +132,7 @@ describe('organization routes', () => {
       description: 'this is a very cool org',
       imageUrl: 'placekitten.com/400/400'
     })
-      .then(async(organization) => request(app).delete(`/api/v1/organizations/${organization._id}`))
+      .then(async(organization) => agent.delete(`/api/v1/organizations/${organization._id}`))
       .then(res => {
         expect(res.body).toEqual({
           _id: expect.anything(),
@@ -185,7 +208,7 @@ describe('organization routes', () => {
       }
     ]);
 
-    return request(app)
+    return agent
       .delete(`/api/v1/organizations/${organization[0].id}`)
       .then(res => {
         expect(res.body).toEqual({
@@ -215,21 +238,13 @@ describe('organization routes', () => {
       imageUrl: 'placekitten.com/400/400',
     });
 
-    const user = await User.create({
-      name: 'Logan Scott',
-      phone: '123 456 7890',
-      email: 'email@email.com',
-      communicationMedium: 'email',
-      imageUrl: 'placekitten.com/400/400'
-    });
-
     // eslint-disable-next-line no-unused-vars
     const membership = await Membership.create({
       organization: organization._id,
       user: user._id
     });
 
-    return request(app)
+    return agent
       .get(`/api/v1/organizations/${organization.id}?members=true`)
       .then(res => expect(res.body).toEqual({
         _id: expect.anything(),

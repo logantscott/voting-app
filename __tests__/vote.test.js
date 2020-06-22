@@ -1,3 +1,5 @@
+require('dotenv').config();
+
 const { MongoMemoryServer } = require('mongodb-memory-server');
 const mongod = new MongoMemoryServer();
 const mongoose = require('mongoose');
@@ -20,7 +22,7 @@ describe('vote routes', () => {
     return mongoose.connection.dropDatabase();
   });
 
-  let organization, poll, user;
+  let organization, poll, user, agent;
   beforeEach(async() => {
     organization = await Organization.create({
       title: 'A New Org',
@@ -32,6 +34,7 @@ describe('vote routes', () => {
       name: 'Logan Scott',
       phone: '123 456 7890',
       email: 'email@email.com',
+      password: '1234',
       communicationMedium: 'email',
       imageUrl: 'placekitten.com/400/400'
     });
@@ -47,6 +50,15 @@ describe('vote routes', () => {
         { option: 'Option 4' }
       ]
     });
+
+    agent = request.agent(app);
+
+    await agent
+      .post('/api/v1/users/login')
+      .send({
+        email: 'email@email.com',
+        password: '1234'
+      });
   });
 
   afterAll(async() => {
@@ -56,7 +68,7 @@ describe('vote routes', () => {
 
   // create a new vote
   it('can create a vote', () => {
-    return request(app)
+    return agent
       .post('/api/v1/votes')
       .send({
         poll: poll._id,
@@ -82,7 +94,7 @@ describe('vote routes', () => {
         user: user._id,
         option: poll.options[1]._id
       })
-      .then(() => request(app)
+      .then(() => agent
         .get(`/api/v1/votes?poll=${poll.id}`))
       .then(res => {
         expect(res.body).toEqual([{
@@ -103,7 +115,7 @@ describe('vote routes', () => {
         user: user._id,
         option: poll.options[1].id
       })
-      .then(() => request(app)
+      .then(() => agent
         .get(`/api/v1/votes?user=${user.id}`))
       .then(res => {
         expect(res.body).toEqual([{
@@ -124,7 +136,7 @@ describe('vote routes', () => {
         user: user._id,
         option: poll.options[1].id
       })
-      .then(vote => request(app)
+      .then(vote => agent
         .patch(`/api/v1/votes/${vote.id}`)
         .send({
           option: poll.options[2].id
@@ -145,7 +157,7 @@ describe('vote routes', () => {
     // apparently this helps make indexes work with mongo memory server
     Vote.ensureIndexes();
 
-    await request(app)
+    await agent
       .post('/api/v1/votes')
       .send({
         poll: poll._id,
@@ -154,7 +166,7 @@ describe('vote routes', () => {
       })
       .then(res => res.body);
 
-    await request(app)
+    await agent
       .post('/api/v1/votes')
       .send({
         poll: poll._id,
@@ -163,7 +175,7 @@ describe('vote routes', () => {
       })
       .then(res => res.body);
 
-    return request(app)
+    return agent
       .get(`/api/v1/votes?poll=${poll.id}&user=${user.id}`)
       .then(res => expect(res.body).toEqual([{
         _id: expect.anything(),
