@@ -1,3 +1,5 @@
+require('dotenv').config();
+
 const { MongoMemoryServer } = require('mongodb-memory-server');
 const mongod = new MongoMemoryServer();
 const mongoose = require('mongoose');
@@ -21,7 +23,7 @@ describe('membership routes', () => {
     return mongoose.connection.dropDatabase();
   });
 
-  let organization, user;
+  let organization, user, agent;
   beforeEach(async() => {
     organization = await Organization.create({
       title: 'A New Org',
@@ -33,9 +35,19 @@ describe('membership routes', () => {
       name: 'Logan Scott',
       phone: '123 456 7890',
       email: 'email@email.com',
+      password: '1234',
       communicationMedium: 'email',
       imageUrl: 'placekitten.com/400/400'
     });
+
+    agent = request.agent(app);
+
+    await agent
+      .post('/api/v1/users/login')
+      .send({
+        email: 'email@email.com',
+        password: '1234'
+      });
   });
 
   afterAll(async() => {
@@ -45,7 +57,7 @@ describe('membership routes', () => {
 
   // create a new membership
   it('can create a membership', () => {
-    return request(app)
+    return agent
       .post('/api/v1/memberships')
       .send({
         organization: organization._id,
@@ -68,7 +80,7 @@ describe('membership routes', () => {
         organization: organization._id,
         user: user._id
       })
-      .then(() => request(app)
+      .then(() => agent
         .get(`/api/v1/memberships?organization=${organization.id}`))
       .then(res => {
         expect(res.body).toEqual([{
@@ -95,7 +107,7 @@ describe('membership routes', () => {
         organization: organization._id,
         user: user._id
       })
-      .then(() => request(app)
+      .then(() => agent
         .get(`/api/v1/memberships?user=${user.id}`))
       .then(res => {
         expect(res.body).toEqual([{
@@ -122,7 +134,7 @@ describe('membership routes', () => {
         organization: organization._id,
         user: user._id
       })
-      .then(membership => request(app)
+      .then(membership => agent
         .delete(`/api/v1/memberships/${membership.id}`))
       .then(res => {
         expect(res.body).toEqual({
@@ -184,7 +196,7 @@ describe('membership routes', () => {
         }
       ]);
     
-    return request(app)
+    return agent
       .delete(`/api/v1/memberships/${membership.id}`)
       .then(res => {
         expect(res.body).toEqual({

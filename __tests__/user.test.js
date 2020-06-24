@@ -1,3 +1,5 @@
+require('dotenv').config();
+
 const { MongoMemoryServer } = require('mongodb-memory-server');
 const mongod = new MongoMemoryServer();
 const mongoose = require('mongoose');
@@ -19,6 +21,27 @@ describe('user routes', () => {
     return mongoose.connection.dropDatabase();
   });
 
+  let newUser, agent;
+  beforeEach(async() => {
+    agent = request.agent(app);
+
+    newUser = await User.create({
+      name: 'Logan Scott',
+      phone: '123 456 7890',
+      email: 'email@email.com',
+      password: '1234',
+      communicationMedium: 'email',
+      imageUrl: 'placekitten.com/400/400'
+    });
+
+    await agent
+      .post('/api/v1/users/login')
+      .send({
+        email: 'email@email.com',
+        password: '1234'
+      });
+  });
+
   afterAll(async() => {
     await mongoose.connection.close();
     return mongod.stop();
@@ -27,11 +50,12 @@ describe('user routes', () => {
   // create a user
   it('can create a user', () => {
     return request(app)
-      .post('/api/v1/users')
+      .post('/api/v1/users/signup')
       .send({
         name: 'Logan Scott',
         phone: '123 456 7890',
         email: 'email@email.com',
+        password: '1234',
         communicationMedium: 'email',
         imageUrl: 'placekitten.com/400/400'
       })
@@ -50,14 +74,8 @@ describe('user routes', () => {
 
   // get all users
   it('can get all users', () => {
-    return User.create({
-      name: 'Logan Scott',
-      phone: '123 456 7890',
-      email: 'email@email.com',
-      communicationMedium: 'email',
-      imageUrl: 'placekitten.com/400/400'
-    })
-      .then(() => request(app).get('/api/v1/users'))
+    return agent
+      .get('/api/v1/users')
       .then(res => {
         expect(res.body).toEqual([{
           _id: expect.anything(),
@@ -72,10 +90,11 @@ describe('user routes', () => {
       name: 'Logan Scott',
       phone: '123 456 7890',
       email: 'email@email.com',
+      password: '1234',
       communicationMedium: 'email',
       imageUrl: 'placekitten.com/400/400'
     })
-      .then(user => request(app).get(`/api/v1/users/${user._id}`))
+      .then(user => agent.get(`/api/v1/users/${user._id}`))
       .then(res => {
         expect(res.body).toEqual({
           _id: expect.anything(),
@@ -91,21 +110,8 @@ describe('user routes', () => {
 
   // get all users by communicationMedium
   it('can get all users by communicationMedium', () => {
-    return User.create([{
-      name: 'Logan Scott',
-      phone: '123 456 7890',
-      email: 'email@email.com',
-      communicationMedium: 'email',
-      imageUrl: 'placekitten.com/400/400'
-    },
-    {
-      name: 'Phony',
-      phone: '123 456 7890',
-      email: 'email@email.com',
-      communicationMedium: 'phone',
-      imageUrl: 'placekitten.com/400/400'
-    }])
-      .then(() => request(app).get('/api/v1/users?communicationMedium=email'))
+    return agent
+      .get('/api/v1/users?communicationMedium=email')
       .then(res => {
         expect(res.body).toEqual([{
           _id: expect.anything(),
@@ -120,10 +126,11 @@ describe('user routes', () => {
       name: 'Logan Scott',
       phone: '123 456 7890',
       email: 'email@email.com',
+      password: '1234',
       communicationMedium: 'email',
       imageUrl: 'placekitten.com/400/400'
     })
-      .then(user => request(app).patch(`/api/v1/users/${user._id}`)
+      .then(user => agent.patch(`/api/v1/users/${user._id}`)
         .send({ phone: '999 999 9999' }))
       .then(res => {
         expect(res.body).toEqual({
@@ -144,10 +151,11 @@ describe('user routes', () => {
       name: 'Logan Scott',
       phone: '123 456 7890',
       email: 'email@email.com',
+      password: '1234',
       communicationMedium: 'email',
       imageUrl: 'placekitten.com/400/400'
     })
-      .then(user => request(app).delete(`/api/v1/users/${user._id}`))
+      .then(user => agent.delete(`/api/v1/users/${user._id}`))
       .then(res => {
         expect(res.body).toEqual({
           _id: expect.anything(),
@@ -172,6 +180,7 @@ describe('user routes', () => {
       name: 'Logan Scott',
       phone: '123 456 7890',
       email: 'email@email.com',
+      password: '1234',
       communicationMedium: 'email',
       imageUrl: 'placekitten.com/400/400'
     });
@@ -182,7 +191,7 @@ describe('user routes', () => {
       user: user._id
     });
 
-    return request(app)
+    return agent
       .get(`/api/v1/users/${user.id}?organizations=true`)
       .then(res => expect(res.body).toEqual({
         _id: expect.anything(),
@@ -200,5 +209,39 @@ describe('user routes', () => {
           }
         ]
       }));
+  });
+
+  
+  it('sets a password hash', () => {
+    const user = new User({
+      email: 'logan@test.com',
+      password: '1234',
+      profileImage: 'placekitten.com/400/400'
+    });
+
+    expect(user.passwordHash).toEqual(expect.any(String));
+  });
+
+  it('has an authToken method', () => {
+    const user = new User({
+      email: 'logan@test.com',
+      password: '1234',
+      profileImage: 'placekitten.com/400/400'
+    });
+
+    expect(user.authToken()).toEqual(expect.any(String));
+  });
+
+  it('can verify a token and return a user', () => {
+    const user = new User({
+      email: 'logan@test.com',
+      password: '1234',
+      profileImage: 'placekitten.com/400/400'
+    });
+
+    const token = user.authToken();
+    const verifiedUser = User.verifyToken(token);
+
+    expect(verifiedUser.toJSON()).toEqual(user.toJSON());
   });
 });

@@ -1,3 +1,5 @@
+require('dotenv').config();
+
 const { MongoMemoryServer } = require('mongodb-memory-server');
 const mongod = new MongoMemoryServer();
 const mongoose = require('mongoose');
@@ -8,6 +10,7 @@ const app = require('../lib/app');
 const Poll = require('../lib/models/Poll');
 const Organization = require('../lib/models/Organization');
 const Vote = require('../lib/models/Vote');
+const User = require('../lib/models/User');
 
 describe('poll routes', () => {
   beforeAll(async() => {
@@ -19,13 +22,31 @@ describe('poll routes', () => {
     return mongoose.connection.dropDatabase();
   });
 
-  let organization;
+  let organization, user, agent;
   beforeEach(async() => {
     organization = await Organization.create({
       title: 'A New Org',
       description: 'this is a very cool org',
       imageUrl: 'placekitten.com/400/400'
     });
+
+    user = await User.create({
+      name: 'Logan Scott',
+      phone: '123 456 7890',
+      email: 'email@email.com',
+      password: '1234',
+      communicationMedium: 'email',
+      imageUrl: 'placekitten.com/400/400'
+    });
+
+    agent = request.agent(app);
+
+    await agent
+      .post('/api/v1/users/login')
+      .send({
+        email: 'email@email.com',
+        password: '1234'
+      });
   });
 
   afterAll(async() => {
@@ -35,7 +56,7 @@ describe('poll routes', () => {
 
   // create a poll
   it('can create a poll', () => {
-    return request(app)
+    return agent
       .post('/api/v1/polls')
       .send({
         organization: organization._id,
@@ -90,7 +111,7 @@ describe('poll routes', () => {
           { option: 'Option 8' }
         ]
       }])
-      .then(() => request(app)
+      .then(() => agent
         .get(`/api/v1/polls?organization=${organization.id}`))
       .then(res => {
         expect(res.body).toEqual([{
@@ -127,7 +148,7 @@ describe('poll routes', () => {
       option: mongoose.Types.ObjectId()
     }]);
 
-    return request(app)
+    return agent
       .get(`/api/v1/polls/${poll.id}`)
       .then((res) => {
         // console.log('res', res.body);
@@ -168,7 +189,7 @@ describe('poll routes', () => {
           { option: 'Option 4' }
         ]
       })
-      .then(poll => request(app)
+      .then(poll => agent
         .patch(`/api/v1/polls/${poll.id}`)
         .send({
           title: 'This is an updated Poll',
@@ -206,7 +227,7 @@ describe('poll routes', () => {
           { option: 'Option 4' }
         ]
       })
-      .then(poll => request(app)
+      .then(poll => agent
         .delete(`/api/v1/polls/${poll.id}`))
       .then(async(res) => {
         // console.log('res', res.body);
