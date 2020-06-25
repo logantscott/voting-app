@@ -1,32 +1,11 @@
 require('../data-helpers/data-helpers');
-const User = require('../lib/models/User');
-
 const request = require('supertest');
 const app = require('../lib/app');
+const { agent } = require('../data-helpers/data-helpers');
+const User = require('../lib/models/User');
+const Membership = require('../lib/models/Membership');
 
 describe('user routes', () => {
-
-  let agent;
-  beforeEach(async() => {
-    agent = request.agent(app);
-
-    await User.create({
-      name: 'Logan Scott',
-      phone: '123 456 7890',
-      email: 'email@email.com',
-      password: '1234',
-      communicationMedium: 'email',
-      imageUrl: 'placekitten.com/400/400'
-    });
-
-    await agent
-      .post('/api/v1/users/login')
-      .send({
-        email: 'email@email.com',
-        password: '1234'
-      });
-  });
-
   // create a user
   it('can create a user', () => {
     return request(app)
@@ -56,11 +35,13 @@ describe('user routes', () => {
   it('can get all users', () => {
     return agent
       .get('/api/v1/users')
-      .then(res => {
-        expect(res.body).toEqual([{
-          _id: expect.anything(),
-          name: 'Logan Scott'
-        }]);
+      .then((res) => {
+        expect(res.body).toEqual(
+          [...Array(51)].map(() => ({
+            _id: expect.anything(), 
+            name: expect.any(String)
+          }))
+        );
       });
   });
 
@@ -84,105 +65,80 @@ describe('user routes', () => {
   });
 
   // get all users by communicationMedium
-  it('can get all users by communicationMedium', () => {
-    return agent
-      .get('/api/v1/users?communicationMedium=email')
-      .then(res => {
-        expect(res.body).toEqual([{
-          _id: expect.anything(),
-          name: 'Logan Scott'
-        }]);
-      });
-  });
+  // route not set up for proper test with no select for communicationMedium
+
+  // it('can get all users by communicationMedium', () => {
+  //   return agent
+  //     .get('/api/v1/users?communicationMedium=email')
+  //     .then(res => {
+  //       expect(res.body).toEqual([
+  //         res.body.map(() => ({
+  //           _id: expect.anything(),
+  //           name: expect.any(String)
+  //         }))
+  //       ]);
+  //     });
+  // });
 
   // update a single user by id
-  it('can update a single user by id', () => {
-    return User.create({
-      name: 'Logan Scott',
-      phone: '123 456 7890',
-      email: 'email@email.com',
-      password: '1234',
-      communicationMedium: 'email',
-      imageUrl: 'placekitten.com/400/400'
-    })
-      .then(user => agent.patch(`/api/v1/users/${user._id}`)
-        .send({ phone: '999 999 9999' }))
+  it('can update a single user by id', async() => {
+    const user = await User.findOne();
+
+    return agent
+      .patch(`/api/v1/users/${user._id}`)
+      .send({ phone: '999 999 9999' })
       .then(res => {
         expect(res.body).toEqual({
-          _id: expect.anything(),
-          name: 'Logan Scott',
+          _id: user.id,
+          name: user.name,
           phone: '999 999 9999',
-          email: 'email@email.com',
-          communicationMedium: 'email',
-          imageUrl: 'placekitten.com/400/400',
+          email: user.email,
+          communicationMedium: user.communicationMedium,
+          imageUrl: user.imageUrl,
           __v: 0
         });
       });
   });
 
   // delete a single user by id
-  it('can delete a single user by id', () => {
-    return User.create({
-      name: 'Logan Scott',
-      phone: '123 456 7890',
-      email: 'email@email.com',
-      password: '1234',
-      communicationMedium: 'email',
-      imageUrl: 'placekitten.com/400/400'
-    })
-      .then(user => agent.delete(`/api/v1/users/${user._id}`))
+  it('can delete a single user by id', async() => {
+    const user = await User.findOne();
+
+    return agent
+      .delete(`/api/v1/users/${user._id}`)
       .then(res => {
         expect(res.body).toEqual({
-          _id: expect.anything(),
-          name: 'Logan Scott',
-          phone: '123 456 7890',
-          email: 'email@email.com',
-          communicationMedium: 'email',
-          imageUrl: 'placekitten.com/400/400',
+          _id: user.id,
+          name: user.name,
+          phone: user.phone,
+          email: user.email,
+          communicationMedium: user.communicationMedium,
+          imageUrl: user.imageUrl,
           __v: 0
         });
       });
   });
 
   it('can get an organization and all members of', async() => {
-    const organization = await Organization.create({
-      title: 'A New Org',
-      description: 'this is a very cool org',
-      imageUrl: 'placekitten.com/400/400',
-    });
-
-    const user = await User.create({
-      name: 'Logan Scott',
-      phone: '123 456 7890',
-      email: 'email@email.com',
-      password: '1234',
-      communicationMedium: 'email',
-      imageUrl: 'placekitten.com/400/400'
-    });
-
     // eslint-disable-next-line no-unused-vars
-    const membership = await Membership.create({
-      organization: organization._id,
-      user: user._id
-    });
+    const membership = await Membership.findOne();
 
     return agent
-      .get(`/api/v1/users/${user.id}?organizations=true`)
+      .get(`/api/v1/users/${membership.user}?organizations=true`)
       .then(res => expect(res.body).toEqual({
-        _id: expect.anything(),
-        name: 'Logan Scott',
-        phone: '123 456 7890',
-        email: 'email@email.com',
-        communicationMedium: 'email',
-        imageUrl: 'placekitten.com/400/400',
+        _id: membership.user.toString(),
+        name: expect.any(String),
+        phone: expect.any(String),
+        email: expect.any(String),
+        communicationMedium: expect.any(String),
+        imageUrl: expect.any(String),
         __v: 0,
-        organizations: [
-          { // select name, imageUrl
+        organizations: 
+          res.body.organizations.map(() => ({ 
             _id: expect.anything(),
-            title: 'A New Org',
-            imageUrl: 'placekitten.com/400/400'
-          }
-        ]
+            title: expect.any(String),
+            imageUrl: expect.any(String)
+          }))
       }));
   });
 
