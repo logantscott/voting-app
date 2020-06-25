@@ -1,51 +1,45 @@
-require('dotenv').config();
+require('../data-helpers/data-helpers');
 
-const { MongoMemoryServer } = require('mongodb-memory-server');
-const mongod = new MongoMemoryServer();
-const mongoose = require('mongoose');
-const connect = require('../lib/utils/connect');
 
-const request = require('supertest');
-const app = require('../lib/app');
-const User = require('../lib/models/User');
-const Organization = require('../lib/models/Organization');
-const Membership = require('../lib/models/Membership');
+// const User = require('../lib/models/User');
+// const Organization = require('../lib/models/Organization');
+// const Membership = require('../lib/models/Membership');
 
 describe('user routes', () => {
-  beforeAll(async() => {
-    const uri = await mongod.getUri();
-    return connect(uri);
-  });
+  // beforeAll(async() => {
+  //   const uri = await mongod.getUri();
+  //   return connect(uri);
+  // });
 
-  beforeEach(() => {
-    return mongoose.connection.dropDatabase();
-  });
+  // beforeEach(() => {
+  //   return mongoose.connection.dropDatabase();
+  // });
 
-  let newUser, agent;
-  beforeEach(async() => {
-    agent = request.agent(app);
+  // let newUser, agent;
+  // beforeEach(async() => {
+  //   agent = request.agent(app);
 
-    newUser = await User.create({
-      name: 'Logan Scott',
-      phone: '123 456 7890',
-      email: 'email@email.com',
-      password: '1234',
-      communicationMedium: 'email',
-      imageUrl: 'placekitten.com/400/400'
-    });
+  //   newUser = await User.create({
+  //     name: 'Logan Scott',
+  //     phone: '123 456 7890',
+  //     email: 'email@email.com',
+  //     password: '1234',
+  //     communicationMedium: 'email',
+  //     imageUrl: 'placekitten.com/400/400'
+  //   });
 
-    await agent
-      .post('/api/v1/users/login')
-      .send({
-        email: 'email@email.com',
-        password: '1234'
-      });
-  });
+  //   await agent
+  //     .post('/api/v1/users/login')
+  //     .send({
+  //       email: 'email@email.com',
+  //       password: '1234'
+  //     });
+  // });
 
-  afterAll(async() => {
-    await mongoose.connection.close();
-    return mongod.stop();
-  });
+  // afterAll(async() => {
+  //   await mongoose.connection.close();
+  //   return mongod.stop();
+  // });
 
   // create a user
   it('can create a user', () => {
