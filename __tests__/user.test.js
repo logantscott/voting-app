@@ -1,45 +1,31 @@
 require('../data-helpers/data-helpers');
+const User = require('../lib/models/User');
 
-
-// const User = require('../lib/models/User');
-// const Organization = require('../lib/models/Organization');
-// const Membership = require('../lib/models/Membership');
+const request = require('supertest');
+const app = require('../lib/app');
 
 describe('user routes', () => {
-  // beforeAll(async() => {
-  //   const uri = await mongod.getUri();
-  //   return connect(uri);
-  // });
 
-  // beforeEach(() => {
-  //   return mongoose.connection.dropDatabase();
-  // });
+  let agent;
+  beforeEach(async() => {
+    agent = request.agent(app);
 
-  // let newUser, agent;
-  // beforeEach(async() => {
-  //   agent = request.agent(app);
+    await User.create({
+      name: 'Logan Scott',
+      phone: '123 456 7890',
+      email: 'email@email.com',
+      password: '1234',
+      communicationMedium: 'email',
+      imageUrl: 'placekitten.com/400/400'
+    });
 
-  //   newUser = await User.create({
-  //     name: 'Logan Scott',
-  //     phone: '123 456 7890',
-  //     email: 'email@email.com',
-  //     password: '1234',
-  //     communicationMedium: 'email',
-  //     imageUrl: 'placekitten.com/400/400'
-  //   });
-
-  //   await agent
-  //     .post('/api/v1/users/login')
-  //     .send({
-  //       email: 'email@email.com',
-  //       password: '1234'
-  //     });
-  // });
-
-  // afterAll(async() => {
-  //   await mongoose.connection.close();
-  //   return mongod.stop();
-  // });
+    await agent
+      .post('/api/v1/users/login')
+      .send({
+        email: 'email@email.com',
+        password: '1234'
+      });
+  });
 
   // create a user
   it('can create a user', () => {
@@ -79,24 +65,19 @@ describe('user routes', () => {
   });
 
   // get a single user by id
-  it('can get a single user by id', () => {
-    return User.create({
-      name: 'Logan Scott',
-      phone: '123 456 7890',
-      email: 'email@email.com',
-      password: '1234',
-      communicationMedium: 'email',
-      imageUrl: 'placekitten.com/400/400'
-    })
-      .then(user => agent.get(`/api/v1/users/${user._id}`))
+  it('can get a single user by id', async() => {
+    const user = await User.findOne();
+
+    return agent
+      .get(`/api/v1/users/${user._id}`)
       .then(res => {
         expect(res.body).toEqual({
-          _id: expect.anything(),
-          name: 'Logan Scott',
-          phone: '123 456 7890',
-          email: 'email@email.com',
-          communicationMedium: 'email',
-          imageUrl: 'placekitten.com/400/400',
+          _id: user.id,
+          name: user.name,
+          phone: user.phone,
+          email: user.email,
+          communicationMedium: user.communicationMedium,
+          imageUrl: user.imageUrl,
           __v: 0
         });
       });
