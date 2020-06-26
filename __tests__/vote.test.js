@@ -1,86 +1,43 @@
-require('dotenv').config();
-
-const { MongoMemoryServer } = require('mongodb-memory-server');
-const mongod = new MongoMemoryServer();
+require('../data-helpers/data-helpers');
+const { agent, prepare } = require('../data-helpers/data-helpers');
 const mongoose = require('mongoose');
-const connect = require('../lib/utils/connect');
+const chance = require('chance').Chance();
 
-const request = require('supertest');
-const app = require('../lib/app');
 const Vote = require('../lib/models/Vote');
 const User = require('../lib/models/User');
-const Organization = require('../lib/models/Organization');
 const Poll = require('../lib/models/Poll');
+const Organization = require('../lib/models/Organization');
 
 describe('vote routes', () => {
-  beforeAll(async() => {
-    const uri = await mongod.getUri();
-    return connect(uri);
-  });
-
-  beforeEach(() => {
-    return mongoose.connection.dropDatabase();
-  });
-
-  let organization, poll, user, agent;
-  beforeEach(async() => {
-    organization = await Organization.create({
-      title: 'A New Org',
-      description: 'this is a very cool org',
-      imageUrl: 'placekitten.com/400/400'
-    });
-
-    user = await User.create({
-      name: 'Logan Scott',
-      phone: '123 456 7890',
-      email: 'email@email.com',
-      password: '1234',
-      communicationMedium: 'email',
-      imageUrl: 'placekitten.com/400/400'
-    });
-
-    poll = await Poll.create({
-      organization: organization._id,
-      title: 'This is a new poll',
-      description: 'I am the description of this poll',
-      options: [
-        { option: 'Option 1' },
-        { option: 'Option 2' },
-        { option: 'Option 3' },
-        { option: 'Option 4' }
-      ]
-    });
-
-    agent = request.agent(app);
-
-    await agent
-      .post('/api/v1/users/login')
-      .send({
-        email: 'email@email.com',
-        password: '1234'
-      });
-  });
-
-  afterAll(async() => {
-    await mongoose.connection.close();
-    return mongod.stop();
-  });
-
   // create a new vote
-  it('can create a vote', () => {
+  it('can create a vote', async() => {
+    const organization = prepare(await Organization.findOne());
+    const poll = prepare(await Poll.create({
+      organization: organization._id,
+      title: chance.sentence() + '?',
+      description: chance.sentence(),
+      options: [
+        { option: chance.animal() },
+        { option: chance.animal() },
+        { option: chance.animal() },
+        { option: chance.animal() }
+      ]
+    }));
+    const user = prepare(await User.findOne());
+
     return agent
       .post('/api/v1/votes')
       .send({
         poll: poll._id,
         user: user._id,
-        option: poll.options[1].id
+        option: poll.options[1]._id
       })
       .then(res => {
         expect(res.body).toEqual({
           _id: expect.anything(),
-          poll: poll.id,
-          user: user.id,
-          option: poll.options[1].id,
+          poll: poll._id,
+          user: user._id,
+          option: poll.options[1]._id,
           __v: 0
         });
       });
@@ -88,81 +45,59 @@ describe('vote routes', () => {
 
   // get all votes on a poll
   it('can get all votes on a poll', async() => {
-    return Vote
-      .create({
-        poll: poll._id,
-        user: user._id,
-        option: poll.options[1]._id
-      })
-      .then(() => agent
-        .get(`/api/v1/votes?poll=${poll.id}`))
+    const poll = prepare(await Poll.findOne());
+    const votes = prepare(await Vote.find({ poll: poll._id }));
+
+    return agent
+      .get(`/api/v1/votes?poll=${poll._id}`)
       .then(res => {
-        expect(res.body).toEqual([{
-          _id: expect.anything(),
-          poll: poll.id,
-          user: user.id,
-          option: poll.options[1].id,
-          __v: 0
-        }]);
+        expect(res.body).toEqual(votes);
       });
   });
 
   // get all votes by a user
-  it('can get all votes by a user', () => {
-    return Vote
-      .create({
-        poll: poll._id,
-        user: user._id,
-        option: poll.options[1].id
-      })
-      .then(() => agent
-        .get(`/api/v1/votes?user=${user.id}`))
+  it('can get all votes by a user', async() => {
+    const user = prepare(await User.findOne());
+    const votes = prepare(await Vote.find({ user: user._id }));
+
+    return agent
+      .get(`/api/v1/votes?user=${user._id}`)
       .then(res => {
-        expect(res.body).toEqual([{
-          _id: expect.anything(),
-          poll: poll.id,
-          user: user.id,
-          option: poll.options[1].id,
-          __v: 0
-        }]);
+        expect(res.body).toEqual(votes);
       });
   });
 
   // update a voted option
-  it('can update a voted option', () => {
-    return Vote
-      .create({
-        poll: poll._id,
-        user: user._id,
-        option: poll.options[1].id
+  it('can update a voted option', async() => {
+    const poll = prepare(await Poll.findOne());
+    const vote = prepare(await Vote.findOne({ poll: poll._id }));
+    const newOption = prepare(mongoose.Types.ObjectId());
+
+    return agent
+      .patch(`/api/v1/votes/${vote._id}`)
+      .send({
+        option: newOption
       })
-      .then(vote => agent
-        .patch(`/api/v1/votes/${vote.id}`)
-        .send({
-          option: poll.options[2].id
-        }))
       .then(res => {
         expect(res.body).toEqual({
-          _id: expect.anything(),
-          poll: poll.id,
-          user: user.id,
-          option: poll.options[2].id,
-          __v: 0
+          ...vote,
+          option: newOption
         });
       });
   });
 
   it('can create vote, only vote once per user/poll combo', async() => {
-
     // apparently this helps make indexes work with mongo memory server
     Vote.ensureIndexes();
+    const poll = prepare(await Poll.findOne());
+    const user = prepare(await User.findOne());
 
     await agent
       .post('/api/v1/votes')
       .send({
         poll: poll._id,
         user: user._id,
-        option: poll.options[1].id
+        option: poll.options[1]._id
       })
       .then(res => res.body);
 
@@ -171,17 +106,17 @@ describe('vote routes', () => {
       .send({
         poll: poll._id,
         user: user._id,
-        option: poll.options[1].id
+        option: poll.options[1]._id
       })
       .then(res => res.body);
 
     return agent
-      .get(`/api/v1/votes?poll=${poll.id}&user=${user.id}`)
+      .get(`/api/v1/votes?poll=${poll._id}&user=${user._id}`)
       .then(res => expect(res.body).toEqual([{
         _id: expect.anything(),
-        poll: poll.id,
-        user: user.id,
-        option: poll.options[1].id,
+        poll: poll._id,
+        user: user._id,
+        option: poll.options[1]._id,
         __v: 0
       }]));
   });
