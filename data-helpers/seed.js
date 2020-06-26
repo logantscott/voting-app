@@ -1,5 +1,4 @@
 const chance = require('chance').Chance();
-const mongoose = require('mongoose');
 
 const User = require('../lib/models/User');
 const Organization = require('../lib/models/Organization');
@@ -43,11 +42,15 @@ module.exports = async({ users = 50, organizations = 5, memberships = 100, polls
   })));
 
   Vote.ensureIndexes();
-  await Vote.create([...Array(votes)].map(() => ({
-    poll: chance.pickone(createdPolls)._id,
-    user: chance.pickone(createdUsers)._id,
-    option: mongoose.Types.ObjectId()
-  })))
+  await Vote.create([...Array(votes)].map(() => {
+    const poll = chance.pickone(createdPolls);
+    return {
+      poll: poll._id,
+      user: chance.pickone(createdUsers)._id,
+      option: poll.options[chance.natural({ min: 0, max: 3 })]._id
+    };
+  }
+  ))
     .catch(err => {
       if(err.code === 11000){
         // console.log('duplicate key error - user can\'t vote twice');
