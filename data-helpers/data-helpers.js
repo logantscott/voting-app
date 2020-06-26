@@ -20,7 +20,7 @@ beforeEach(() => {
 });
 
 beforeEach(() => {
-  return seed({ users: 50, organizations: 5 });
+  return seed({ users: 50, organizations: 5, memberships: 100, polls: 100, votes: 500 });
 });
 
 let agent = request.agent(app);
@@ -48,6 +48,15 @@ afterAll(async() => {
   return mongod.stop();
 });
 
+const prepareOne = model => JSON.parse(JSON.stringify(model));
+const prepareMany = models => models.map(prepareOne);
+
+const prepare = model => {
+  if(Array.isArray(model)) return prepareMany(model);
+  return prepareOne(model);
+};
+
 module.exports = {
-  agent
+  agent,
+  prepare
 };

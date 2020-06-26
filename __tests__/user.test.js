@@ -1,7 +1,9 @@
 require('../data-helpers/data-helpers');
+const { agent, prepare } = require('../data-helpers/data-helpers');
+
 const request = require('supertest');
 const app = require('../lib/app');
-const { agent } = require('../data-helpers/data-helpers');
+
 const User = require('../lib/models/User');
 const Membership = require('../lib/models/Membership');
 
